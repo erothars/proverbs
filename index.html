@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>it's a spectrum</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -58,11 +58,23 @@
     }
 
     .header-left p {
-      font-size: 0.93rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 1.18rem;
       color: var(--red);
-      max-width: 380px;
-      line-height: 1.66;
-      opacity: 0.68;
+      max-width: 560px;
+      line-height: 1.6;
+      opacity: 0.72;
+    }
+
+    @media (min-width: 641px) {
+      .header-left p {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
     }
 
     /* Controls sit flush with the description line, not the h1 */
@@ -312,6 +324,7 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 2px 14px rgba(200,24,24,0.07), 0 1px 3px rgba(0,0,0,0.04);
+      cursor: pointer;
       /* entrance */
       opacity: 0;
       transform: translateY(18px) scale(0.97);
@@ -378,7 +391,7 @@
     .card-original {
       font-family: 'Cormorant Garamond', serif;
       font-style: italic;
-      font-size: 0.95rem;
+      font-size: 1rem;
       color: var(--red);
       margin-bottom: 4px;
       line-height: 1.35;
@@ -388,9 +401,10 @@
       text-overflow: ellipsis;
     }
     .card.user-card .card-original { color: var(--teal); }
+    .card.user-card .card-description { color: rgba(18, 113, 106, 0.65); }
 
     .card-title {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 700;
       font-size: clamp(0.92rem, 1.25vw, 1.05rem);
       color: var(--red);
@@ -400,9 +414,12 @@
     .card.user-card .card-title { color: var(--teal); }
 
     .card-description {
-      font-size: clamp(0.76rem, 0.95vw, 0.84rem);
-      color: var(--muted);
-      line-height: 1.6;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: clamp(1rem, 1.2vw, 1.12rem);
+      color: rgba(200, 24, 24, 0.62);
+      line-height: 1.65;
     }
 
     /* Card footer — origin + themes sit at the bottom */
@@ -703,20 +720,186 @@
       background: var(--beige);
     }
     .footer-note {
-      font-size: 0.66rem;
+      font-size: 0.82rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(200,24,24,0.3);
+      color: rgba(200,24,24,0.4);
     }
     #cardCount {
-      font-size: 0.66rem;
+      font-size: 0.82rem;
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(200,24,24,0.45);
+      color: rgba(200,24,24,0.55);
       transition: opacity 0.3s;
     }
+    /* ══ CARD DETAIL PANEL ═════════════════════════════════ */
+    #detailOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(30, 10, 10, 0.28);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    #detailOverlay.open { display: flex; }
+
+    #detailPanel {
+      background: var(--beige);
+      border: 1.5px solid var(--red);
+      width: min(480px, 92vw);
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modalIn 0.26s var(--ease-out) both;
+    }
+
+    /* On mobile: slide up from bottom as a sheet */
+    @media (max-width: 640px) {
+      #detailOverlay {
+        align-items: flex-end;
+        justify-content: stretch;
+      }
+      #detailPanel {
+        width: 100%;
+        max-height: 82vh;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        border-radius: 0;
+        animation: sheetUp 0.3s var(--ease-out) both;
+      }
+      @keyframes sheetUp {
+        from { transform: translateY(100%); opacity: 0.6; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+    }
+
+    .detail-head {
+      padding: 22px 24px 14px;
+      border-bottom: 1px solid rgba(200,24,24,0.13);
+      position: relative;
+    }
+    .detail-head .detail-close {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.45;
+      padding: 4px;
+      transition: opacity 0.15s;
+    }
+    .detail-head .detail-close:hover { opacity: 1; }
+
+    /* Mobile drag handle */
+    .detail-handle {
+      display: none;
+      width: 36px; height: 4px;
+      background: rgba(200,24,24,0.2);
+      border-radius: 2px;
+      margin: 0 auto 14px;
+    }
+    @media (max-width: 640px) {
+      .detail-handle { display: block; }
+    }
+
+    .detail-original {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--red);
+      opacity: 0.75;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .detail-original.teal { color: var(--teal); }
+
+    .detail-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: var(--red);
+      line-height: 1.25;
+      margin-bottom: 0;
+    }
+    .detail-title.teal { color: var(--teal); }
+
+    .detail-body {
+      padding: 18px 24px 22px;
+    }
+
+    .detail-desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 1.12rem;
+      color: rgba(200, 24, 24, 0.62);
+      line-height: 1.72;
+      margin-bottom: 20px;
+    }
+    .detail-desc.teal { color: rgba(18, 113, 106, 0.65); }
+
+    .detail-foot {
+      border-top: 1px solid rgba(200,24,24,0.1);
+      padding-top: 14px;
+    }
+    .detail-origin {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.5);
+      margin-bottom: 8px;
+    }
+    .detail-origin.teal { color: rgba(18,113,106,0.55); }
+    .detail-themes {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    /* Spectrum position bar */
+    .detail-spectrum {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(200,24,24,0.1);
+    }
+    .detail-spectrum-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.4);
+      margin-bottom: 8px;
+    }
+    .detail-spectrum-track {
+      height: 3px;
+      background: var(--red-mid);
+      border-radius: 2px;
+      position: relative;
+    }
+    .detail-spectrum-dot {
+      position: absolute;
+      top: 50%;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--red);
+      border: 2px solid var(--beige);
+      box-shadow: 0 0 0 1.5px var(--red);
+      transform: translate(-50%, -50%);
+      transition: left 0.3s;
+    }
+    .detail-spectrum-dot.teal {
+      background: var(--teal);
+      box-shadow: 0 0 0 1.5px var(--teal);
+    }
+
   </style>
 </head>
 <body>
@@ -769,6 +952,39 @@
 <div class="footer-bar">
   <span class="footer-note">← individualism · · · collectivism →</span>
   <span id="cardCount"></span>
+</div>
+
+<!-- CARD DETAIL PANEL -->
+<div id="detailOverlay">
+  <div id="detailPanel" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="detail-head">
+      <div class="detail-handle"></div>
+      <div id="detailOriginal" class="detail-original" style="display:none"></div>
+      <div id="detailTitle" class="detail-title"></div>
+      <button class="detail-close" id="detailCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <line x1="2" y1="2" x2="14" y2="14" stroke="#C81818" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="14" y1="2" x2="2" y2="14" stroke="#C81818" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="detail-body">
+      <p id="detailDesc" class="detail-desc"></p>
+      <div class="detail-foot">
+        <div id="detailOrigin" class="detail-origin"></div>
+        <div id="detailThemes" class="detail-themes"></div>
+      </div>
+      <div class="detail-spectrum">
+        <div class="detail-spectrum-label">
+          <span>Individualism</span>
+          <span>Collectivism</span>
+        </div>
+        <div class="detail-spectrum-track">
+          <div id="detailDot" class="detail-spectrum-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ADD PROVERB MODAL -->
@@ -881,7 +1097,7 @@ const LIBRARY = [
     img:"https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:4, score:15, title:"Fortune favors the bold", origin:"Latin (Virgil, 19 BCE)",
     desc:"Risk-taking and personal daring attract good fortune. The universe rewards courage, not caution.",
-    themes:["courage","strength"], original:"Audaces fortuna iuvat",
+    themes:["courage"], original:"Audaces fortuna iuvat",
     img:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:5, score:19, title:"Every man is the architect of his own fortune", origin:"Roman (Appius Claudius, 312 BCE)",
     desc:"Circumstance is raw material, not destiny. Personal agency is the chisel; the future is the stone you carve.",
@@ -901,11 +1117,11 @@ const LIBRARY = [
     img:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:9, score:35, title:"A drop in the ocean", origin:"English idiom",
     desc:"An individual contribution so small it makes no discernible difference — the loneliness of singularity at scale.",
-    themes:["nature","community"], original:null,
+    themes:["nature"], original:null,
     img:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:10, score:39, title:"Every man for himself", origin:"French proverb",
     desc:"When stakes are high, each person must tend to their own survival first. Self-preservation is the first law of difficult times.",
-    themes:["courage","community"], original:"Chacun pour soi et Dieu pour tous",
+    themes:["courage"], original:"Chacun pour soi et Dieu pour tous",
     img:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:11, score:43, title:"Peel your own orange", origin:"Spanish proverb",
     desc:"Don't wait for others to do what you can do yourself. Self-sufficiency in small acts builds genuine independence.",
@@ -927,8 +1143,8 @@ const LIBRARY = [
     desc:"A single signal is not a pattern. Broad conditions require many contributors — no one person announces a season.",
     themes:["nature","wisdom"], original:null,
     img:"https://images.unsplash.com/photo-1606041011872-596597976b25?w=400&h=220&fit=crop&q=80", userAdded:false },
-  { id:16, score:61, title:"Fall seven times, stand up eight", origin:"Japanese proverb",
-    desc:"Resilience is the surplus of recoveries over failures. To persist through all falls, one must be rooted in something shared.",
+  { id:16, score:38, title:"Fall seven times, stand up eight", origin:"Japanese proverb",
+    desc:"Resilience lives in the individual will to rise again. No matter how many times circumstance knocks you down, the decision to stand is yours alone.",
     themes:["perseverance","courage"], original:"七転び八起き",
     img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:17, score:65, title:"A rising tide lifts all boats", origin:"American folk wisdom",
@@ -951,8 +1167,8 @@ const LIBRARY = [
     desc:"Individual identity is not separable from community. You become fully human through the recognition others extend to you.",
     themes:["community"], original:"Mtu ni watu",
     img:"https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=400&h=220&fit=crop&q=80", userAdded:false },
-  { id:22, score:79, title:"Little strokes fell great oaks", origin:"English (Benjamin Franklin, 1736)",
-    desc:"Patient, repeated effort accomplishes what force alone cannot. Small consistent acts accumulate into transformation.",
+  { id:22, score:30, title:"Little strokes fell great oaks", origin:"English (Benjamin Franklin, 1736)",
+    desc:"From Poor Richard's Almanack — a hymn to individual diligence. The single person who chips away, day after day, achieves what no single force could. Persistence belongs to the one who wields the axe.",
     themes:["perseverance","nature"], original:null,
     img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=220&fit=crop&q=80", userAdded:false },
   { id:23, score:81, title:"Drop by drop makes an ocean", origin:"Hindi proverb",
@@ -1130,6 +1346,9 @@ function render() {
       </div>`;
 
     cardsEl.appendChild(card);
+
+    // Open detail on click / tap
+    card.addEventListener('click', () => openDetail(p));
   });
 
   // ── Second pass: measure real heights, clamp, animate in ──
@@ -1314,8 +1533,62 @@ function resetModal() {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  SPACER — align controls to description text, not h1
+//  CARD DETAIL PANEL
 // ═══════════════════════════════════════════════════════════
+const detailOverlay = document.getElementById('detailOverlay');
+
+function openDetail(p) {
+  const isTeal = p.userAdded;
+
+  const origEl   = document.getElementById('detailOriginal');
+  const titleEl  = document.getElementById('detailTitle');
+  const descEl   = document.getElementById('detailDesc');
+  const originEl = document.getElementById('detailOrigin');
+  const themesEl = document.getElementById('detailThemes');
+  const dotEl    = document.getElementById('detailDot');
+
+  if (p.original) {
+    origEl.textContent = p.original;
+    origEl.style.display = 'block';
+    origEl.className = 'detail-original' + (isTeal ? ' teal' : '');
+  } else {
+    origEl.style.display = 'none';
+  }
+
+  titleEl.textContent = p.title;
+  titleEl.className   = 'detail-title' + (isTeal ? ' teal' : '');
+
+  descEl.textContent  = p.desc;
+  descEl.className    = 'detail-desc' + (isTeal ? ' teal' : '');
+
+  originEl.textContent = p.origin;
+  originEl.className   = 'detail-origin' + (isTeal ? ' teal' : '');
+
+  const pills = (p.themes || []).map(t =>
+    `<span class="theme-pill${isTeal ? '" style="color:var(--teal);background:var(--teal-mid)' : ''}">${t}</span>`
+  ).join('');
+  themesEl.innerHTML = pills + (isTeal ? '<span class="user-badge">yours</span>' : '');
+
+  dotEl.style.left    = p.score + '%';
+  dotEl.className     = 'detail-spectrum-dot' + (isTeal ? ' teal' : '');
+
+  detailOverlay.classList.add('open');
+  document.getElementById('detailPanel').scrollTop = 0;
+}
+
+function closeDetail() {
+  detailOverlay.classList.remove('open');
+}
+
+document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+detailOverlay.addEventListener('click', e => {
+  if (e.target === detailOverlay) closeDetail();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && detailOverlay.classList.contains('open')) closeDetail();
+});
+
+
 function syncSpacer() {
   const h1     = document.querySelector('.header-left h1');
   const spacer = document.getElementById('h1Spacer');
