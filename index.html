@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>it's a spectrum</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:      #C81818;
+      --red-pale: #FEF2F2;
+      --red-mid:  #F0CCCC;
+      --white:    #FFFFFF;
+      --muted:    #6C6C6C;
+      --card-w:   clamp(156px, 14.5vw, 204px);
+      --card-img: clamp(84px, 11vh, 114px);
+      --ease-out: cubic-bezier(.22,.68,0,1.1);
+
+      /* User-added card palette — deep teal */
+      --teal:      #12716A;
+      --teal-pale: #EEF8F7;
+      --teal-mid:  #BDE5E3;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Hanken Grotesk', sans-serif;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══ HEADER ════════════════════════════════════════════ */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 22px 38px 18px;
+      background: var(--white);
+      border-bottom: 1.5px solid var(--red);
+      flex-shrink: 0;
+      gap: 24px;
+    }
+
+    .header-left h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-style: italic;
+      font-size: clamp(1.55rem, 2.4vw, 2.35rem);
+      color: var(--red);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .header-left p {
+      font-size: 0.79rem;
+      color: var(--red);
+      max-width: 380px;
+      line-height: 1.66;
+      opacity: 0.68;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-top: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Theme select */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 11px; top: 50%;
+      transform: translateY(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--red);
+      pointer-events: none;
+    }
+    select {
+      border: 1.5px solid var(--red);
+      padding: 8px 34px 8px 13px;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 0.79rem;
+      color: var(--red);
+      background: transparent;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      min-width: 178px;
+      transition: background 0.16s;
+    }
+    select:focus { background: var(--red-pale); }
+
+    /* Add proverb button */
+    .add-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1.5px solid var(--red);
+      background: transparent;
+      color: var(--red);
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 0.79rem;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.16s, color 0.16s;
+      white-space: nowrap;
+    }
+    .add-btn:hover { background: var(--red); color: var(--white); }
+    .add-btn svg { transition: stroke 0.16s; }
+    .add-btn:hover svg line,
+    .add-btn:hover svg circle { stroke: var(--white); }
+
+    /* ══ STAGE ═════════════════════════════════════════════ */
+    .stage {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .axis-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      writing-mode: vertical-lr;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .axis-label.left  { transform: rotate(180deg); border-right: 1.5px solid var(--red); }
+    .axis-label.right { border-left: 1.5px solid var(--red); }
+
+    /* ══ CANVAS ════════════════════════════════════════════ */
+    #canvas {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Spectrum line */
+    #specLine {
+      position: absolute;
+      left: 24px; right: 24px;
+      height: 1.5px;
+      background: var(--red);
+      z-index: 3;
+    }
+    #specLine::before, #specLine::after {
+      content: '';
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+    }
+    #specLine::before {
+      left: -8px;
+      border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+      border-right: 8px solid var(--red);
+    }
+    #specLine::after {
+      right: -8px;
+      border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+      border-left: 8px solid var(--red);
+    }
+
+    .tick {
+      position: absolute;
+      width: 1px; height: 7px;
+      background: rgba(200,24,24,0.18);
+      top: -3px;
+      transform: translateX(-50%);
+    }
+
+    /* SVG connector overlay */
+    #connSvg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Score dots */
+    #dotsLayer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+
+    .score-dot {
+      position: absolute;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(200,24,24,0.18);
+      border: 1px solid rgba(200,24,24,0.25);
+      transform: translate(-50%, -50%);
+      transition: background 0.4s, transform 0.4s, opacity 0.4s;
+    }
+    .score-dot.active {
+      background: var(--red);
+      border-color: var(--red);
+      width: 9px; height: 9px;
+    }
+    .score-dot.hidden-dot { opacity: 0.05; }
+
+    /* Staggered mode — faint spec line */
+    #specLine.staggered {
+      background: rgba(200,24,24,0.14);
+    }
+    #specLine.staggered::before { border-right-color: rgba(200,24,24,0.14); }
+    #specLine.staggered::after  { border-left-color: rgba(200,24,24,0.14); }
+    #specLine.staggered .tick   { background: rgba(200,24,24,0.1); }
+
+    /* ══ CARDS ═════════════════════════════════════════════ */
+    #cardsLayer { position: absolute; inset: 0; z-index: 10; }
+
+    .card {
+      position: absolute;
+      width: var(--card-w);
+      background: var(--white);
+      border: 1px solid rgba(200,24,24,0.13);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 14px rgba(200,24,24,0.07), 0 1px 3px rgba(0,0,0,0.04);
+      /* entrance */
+      opacity: 0;
+      transform: translateY(18px) scale(0.97);
+      transition: opacity 0.42s var(--ease-out),
+                  transform 0.42s var(--ease-out),
+                  box-shadow 0.2s ease;
+      will-change: transform, opacity;
+    }
+    .card.in {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .card.out {
+      opacity: 0;
+      transform: translateY(-14px) scale(0.96);
+      pointer-events: none;
+    }
+    .card:hover {
+      box-shadow: 0 12px 40px rgba(200,24,24,0.14), 0 3px 8px rgba(0,0,0,0.07);
+      z-index: 99;
+      transform: translateY(-5px) scale(1.025) !important;
+    }
+
+    /* ── User-added card: teal theme ── */
+    .card.user-card {
+      border-color: rgba(18,113,106,0.2);
+      box-shadow: 0 2px 14px rgba(18,113,106,0.09), 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card.user-card:hover {
+      box-shadow: 0 12px 40px rgba(18,113,106,0.18), 0 3px 8px rgba(0,0,0,0.07);
+    }
+    .card.user-card .card-img-wrap {
+      background: var(--teal-mid);
+    }
+    .card.user-card .card-img-wrap::after {
+      background: rgba(10,90,84,0.44);
+    }
+    .card.user-card .card-original,
+    .card.user-card .card-title {
+      color: var(--teal);
+    }
+    .card.user-card .card-foot {
+      border-top-color: rgba(18,113,106,0.12);
+    }
+    .card.user-card .card-origin {
+      color: rgba(18,113,106,0.52);
+    }
+    .card.user-card .theme-pill {
+      color: var(--teal);
+      background: var(--teal-mid);
+    }
+
+    .card-img-wrap {
+      width: 100%; height: var(--card-img);
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+      background: var(--red-mid);
+    }
+    .card.user-card .card-img-wrap { background: var(--teal-mid); }
+
+    .card-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      filter: grayscale(100%) contrast(1.06) brightness(0.88);
+      transition: transform 0.32s ease;
+    }
+    .card:hover .card-img-wrap img { transform: scale(1.06); }
+    .card-img-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(165,10,10,0.44);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    .card.user-card .card-img-wrap::after { background: rgba(10,90,84,0.44); }
+
+    .card-body {
+      flex: 1;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .card-original {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.79rem;
+      color: var(--red);
+      margin-bottom: 2px;
+      line-height: 1.35;
+      opacity: 0.78;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card.user-card .card-original { color: var(--teal); }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(0.74rem, 1.05vw, 0.87rem);
+      color: var(--red);
+      line-height: 1.28;
+      margin-bottom: 5px;
+    }
+    .card.user-card .card-title { color: var(--teal); }
+
+    .card-description {
+      font-size: clamp(0.61rem, 0.78vw, 0.68rem);
+      color: var(--muted);
+      line-height: 1.56;
+    }
+
+    /* Card footer — origin + themes sit at the bottom */
+    .card-foot {
+      flex-shrink: 0;
+      padding: 6px 12px 9px;
+      border-top: 1px solid rgba(200,24,24,0.09);
+    }
+    .card.user-card .card-foot { border-top-color: rgba(18,113,106,0.1); }
+
+    .card-origin {
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.48);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card.user-card .card-origin { color: rgba(18,113,106,0.52); }
+
+    .card-themes {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .theme-pill {
+      font-size: 0.53rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--red);
+      background: var(--red-mid);
+      padding: 1px 5px 2px;
+      border-radius: 2px;
+    }
+    /* user-added badge */
+    .user-badge {
+      font-size: 0.53rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--teal);
+      padding: 1px 5px 2px;
+      border-radius: 2px;
+    }
+
+    /* ══ INTRO OVERLAY ═════════════════════════════════════ */
+    #introHint {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.35);
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.5s ease;
+    }
+    #introHint.hidden { opacity: 0; }
+
+    /* ══ MODAL OVERLAY ═════════════════════════════════════ */
+    #modalOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(200, 24, 24, 0.06);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #modalOverlay.open { display: flex; }
+
+    #modal {
+      background: var(--white);
+      border: 1.5px solid var(--red);
+      width: min(520px, 92vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modalIn 0.28s var(--ease-out) both;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 22px 26px 16px;
+      border-bottom: 1px solid rgba(200,24,24,0.15);
+    }
+    .modal-head h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-style: italic;
+      font-size: 1.35rem;
+      color: var(--red);
+      line-height: 1.1;
+    }
+    .modal-head p {
+      font-size: 0.76rem;
+      color: var(--red);
+      opacity: 0.6;
+      margin-top: 4px;
+      max-width: 320px;
+      line-height: 1.55;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+      opacity: 0.5;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .close-btn:hover { opacity: 1; }
+
+    .modal-body { padding: 20px 26px 24px; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 5px;
+      opacity: 0.7;
+    }
+    .field label span {
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      opacity: 0.7;
+      font-size: 0.67rem;
+    }
+
+    .field input[type="text"],
+    .field textarea {
+      width: 100%;
+      border: 1.5px solid rgba(200,24,24,0.28);
+      padding: 9px 12px;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 0.82rem;
+      color: #222;
+      background: transparent;
+      outline: none;
+      resize: none;
+      transition: border-color 0.16s, background 0.16s;
+      border-radius: 0;
+    }
+    .field input[type="text"]:focus,
+    .field textarea:focus {
+      border-color: var(--red);
+      background: var(--red-pale);
+    }
+    .field textarea { min-height: 72px; }
+
+    /* Spectrum slider */
+    .slider-wrap { position: relative; padding-bottom: 24px; }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.45);
+      margin-top: 6px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 3px;
+      background: var(--red-mid);
+      outline: none;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--red);
+      border: 2px solid var(--white);
+      box-shadow: 0 0 0 1.5px var(--red);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--red);
+      border: 2px solid var(--white);
+      box-shadow: 0 0 0 1.5px var(--red);
+      cursor: pointer;
+    }
+
+    /* Theme checkboxes */
+    .theme-checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .theme-check-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-size: 0.73rem;
+      font-weight: 500;
+      color: var(--red);
+      border: 1.5px solid rgba(200,24,24,0.3);
+      padding: 4px 10px;
+      border-radius: 2px;
+      transition: background 0.14s, border-color 0.14s;
+      user-select: none;
+    }
+    .theme-check-label input { display: none; }
+    .theme-check-label.checked {
+      background: var(--red);
+      color: var(--white);
+      border-color: var(--red);
+    }
+
+    /* Error states */
+    .field.error input, .field.error textarea {
+      border-color: var(--red) !important;
+      background: var(--red-pale);
+    }
+    .field-err {
+      font-size: 0.66rem;
+      color: var(--red);
+      margin-top: 4px;
+      display: none;
+    }
+    .field.error .field-err { display: block; }
+
+    /* Submit */
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(200,24,24,0.12);
+      margin-top: 4px;
+    }
+    .cancel-btn {
+      background: none;
+      border: 1.5px solid rgba(200,24,24,0.3);
+      color: rgba(200,24,24,0.55);
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: border-color 0.14s, color 0.14s;
+    }
+    .cancel-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .submit-btn {
+      background: var(--red);
+      border: none;
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      padding: 8px 24px;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+    .submit-btn:hover { background: #a01010; }
+
+    /* ══ FOOTER ════════════════════════════════════════════ */
+    .footer-bar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 38px;
+      height: 44px;
+      border-top: 1px solid var(--red-mid);
+      background: var(--white);
+    }
+    .footer-note {
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.3);
+    }
+    #cardCount {
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(200,24,24,0.45);
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <h1>it's a spectrum</h1>
+    <p>Proverbs and idioms from cultures across the world, plotted between individual will and collective wisdom. Select a theme to explore.</p>
+  </div>
+  <div class="header-controls">
+    <div class="select-wrap">
+      <select id="themeSelect">
+        <option value="">Explore a theme</option>
+        <option value="strength">Strength &amp; Unity</option>
+        <option value="wisdom">Wisdom &amp; Reflection</option>
+        <option value="community">Community &amp; Belonging</option>
+        <option value="nature">Nature &amp; Scale</option>
+        <option value="perseverance">Perseverance</option>
+        <option value="courage">Courage &amp; Independence</option>
+      </select>
+    </div>
+    <button class="add-btn" id="openModalBtn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <line x1="6" y1="1" x2="6" y2="11" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="1" y1="6" x2="11" y2="6" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      Add a proverb
+    </button>
+  </div>
+</header>
+
+<!-- STAGE -->
+<div class="stage">
+  <div class="axis-label left">INDIVIDUALISM</div>
+  <div id="canvas">
+    <svg id="connSvg"></svg>
+    <div id="specLine"></div>
+    <div id="dotsLayer"></div>
+    <div id="cardsLayer"></div>
+    <p id="introHint">← select a theme above to reveal more proverbs →</p>
+  </div>
+  <div class="axis-label right">COLLECTIVISM</div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-bar">
+  <span class="footer-note">← individualism · · · collectivism →</span>
+  <span id="cardCount"></span>
+</div>
+
+<!-- ADD PROVERB MODAL -->
+<div id="modalOverlay">
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle">add your proverb</h2>
+        <p>Share a saying from your culture or one that has stayed with you. We'll place it on the spectrum.</p>
+      </div>
+      <button class="close-btn" id="closeModalBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <line x1="2" y1="2" x2="14" y2="14" stroke="#C81818" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="14" y1="2" x2="2" y2="14" stroke="#C81818" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- English title -->
+      <div class="field" id="f-title">
+        <label for="m-title">Title / English translation</label>
+        <input type="text" id="m-title" placeholder="e.g. A chain is only as strong as its weakest link">
+        <p class="field-err">Please enter a title or translation.</p>
+      </div>
+
+      <!-- Original -->
+      <div class="field" id="f-original">
+        <label for="m-original">Original text <span>(optional — in native script or language)</span></label>
+        <input type="text" id="m-original" placeholder="e.g. Cadena no es más fuerte que su eslabón más débil">
+      </div>
+
+      <!-- Origin -->
+      <div class="field" id="f-origin">
+        <label for="m-origin">Origin / culture</label>
+        <input type="text" id="m-origin" placeholder="e.g. Spanish proverb, 19th century">
+        <p class="field-err">Please tell us where this comes from.</p>
+      </div>
+
+      <!-- Description -->
+      <div class="field" id="f-desc">
+        <label for="m-desc">What does it mean? <span>(1–3 sentences)</span></label>
+        <textarea id="m-desc" placeholder="Describe what the proverb means and the values it reflects…"></textarea>
+        <p class="field-err">Please add a short description.</p>
+      </div>
+
+      <!-- Themes -->
+      <div class="field" id="f-themes">
+        <label>Themes <span>(pick at least one)</span></label>
+        <div class="theme-checks">
+          <label class="theme-check-label" data-theme="strength">
+            <input type="checkbox" value="strength"> Strength &amp; Unity
+          </label>
+          <label class="theme-check-label" data-theme="wisdom">
+            <input type="checkbox" value="wisdom"> Wisdom &amp; Reflection
+          </label>
+          <label class="theme-check-label" data-theme="community">
+            <input type="checkbox" value="community"> Community &amp; Belonging
+          </label>
+          <label class="theme-check-label" data-theme="nature">
+            <input type="checkbox" value="nature"> Nature &amp; Scale
+          </label>
+          <label class="theme-check-label" data-theme="perseverance">
+            <input type="checkbox" value="perseverance"> Perseverance
+          </label>
+          <label class="theme-check-label" data-theme="courage">
+            <input type="checkbox" value="courage"> Courage &amp; Independence
+          </label>
+        </div>
+        <p class="field-err">Please select at least one theme.</p>
+      </div>
+
+      <!-- Spectrum position -->
+      <div class="field">
+        <label for="m-score">Where on the spectrum does it sit?</label>
+        <div class="slider-wrap">
+          <input type="range" id="m-score" min="0" max="100" value="50">
+          <div class="slider-labels">
+            <span>← Individualism</span>
+            <span id="scoreLabel">Middle (50)</span>
+            <span>Collectivism →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" id="cancelBtn">Cancel</button>
+        <button class="submit-btn" id="submitBtn">Place on spectrum</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA — 31 proverbs
+// ═══════════════════════════════════════════════════════════
+const LIBRARY = [
+  { id:1, score:3, title:"The squeaky wheel gets the grease", origin:"American folk saying",
+    desc:"Those who voice their needs receive attention. The individual who speaks up reshapes the world around them.",
+    themes:["courage"], original:null,
+    img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:2, score:7, title:"God helps those who help themselves", origin:"Ancient Greek proverb",
+    desc:"Cosmic favor follows personal initiative. Action is the precondition for fortune.",
+    themes:["perseverance","courage"], original:null,
+    img:"https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:3, score:11, title:"Know thyself", origin:"Ancient Greek (Delphi)",
+    desc:"Self-knowledge is the root of all wisdom. A radically interior journey — understanding begins and ends with the individual.",
+    themes:["wisdom"], original:"Γνῶθι σεαυτόν",
+    img:"https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:4, score:15, title:"Fortune favors the bold", origin:"Latin (Virgil, 19 BCE)",
+    desc:"Risk-taking and personal daring attract good fortune. The universe rewards courage, not caution.",
+    themes:["courage","strength"], original:"Audaces fortuna iuvat",
+    img:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:5, score:19, title:"Every man is the architect of his own fortune", origin:"Roman (Appius Claudius, 312 BCE)",
+    desc:"Circumstance is raw material, not destiny. Personal agency is the chisel; the future is the stone you carve.",
+    themes:["perseverance","wisdom"], original:"Faber est suae quisque fortunae",
+    img:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:6, score:23, title:"I am the master of my fate", origin:"English (W.E. Henley, 1875)",
+    desc:"From Invictus. No force — disease, circumstance, society — can claim ownership of the unconquered self.",
+    themes:["courage","perseverance"], original:null,
+    img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:7, score:27, title:"A rolling stone gathers no moss", origin:"English / Latin proverb",
+    desc:"Movement and independence resist accumulation of obligations or ties. Freedom from rootedness is the prize of restless self-reliance.",
+    themes:["wisdom","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:8, score:31, title:"Still waters run deep", origin:"Latin proverb",
+    desc:"Depth in a person often goes unannounced. The most capable individuals rarely perform their worth.",
+    themes:["wisdom","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:9, score:35, title:"A drop in the ocean", origin:"English idiom",
+    desc:"An individual contribution so small it makes no discernible difference — the loneliness of singularity at scale.",
+    themes:["nature","community"], original:null,
+    img:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:10, score:39, title:"Every man for himself", origin:"French proverb",
+    desc:"When stakes are high, each person must tend to their own survival first. Self-preservation is the first law of difficult times.",
+    themes:["courage","community"], original:"Chacun pour soi et Dieu pour tous",
+    img:"https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:11, score:43, title:"Peel your own orange", origin:"Spanish proverb",
+    desc:"Don't wait for others to do what you can do yourself. Self-sufficiency in small acts builds genuine independence.",
+    themes:["perseverance","courage"], original:"Pélete tu mismo la naranja",
+    img:"https://images.unsplash.com/photo-1547514701-42782101795e?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:12, score:47, title:"A bird in the hand is worth two in the bush", origin:"English (Medieval Latin origin)",
+    desc:"Tangible possession outweighs speculative abundance. Tend to what is yours before reaching into the unknown.",
+    themes:["wisdom","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1444464666168-49d633b86797?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:13, score:50, title:"One hand washes the other", origin:"Latin (Seneca, 1st century)",
+    desc:"Mutual aid is the practical foundation of social life. Each party benefits from giving, creating something neither could produce alone.",
+    themes:["community","wisdom"], original:"Manus manum lavat",
+    img:"https://images.unsplash.com/photo-1535571920378-1e2e0e89ad2c?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:14, score:54, title:"Two heads are better than one", origin:"English (John Heywood, 1546)",
+    desc:"Shared intelligence surpasses individual cleverness. Different perspectives yield insight no single mind could reach alone.",
+    themes:["wisdom","community"], original:null,
+    img:"https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:15, score:57, title:"One swallow does not a summer make", origin:"Ancient Greek (Aristotle, 350 BCE)",
+    desc:"A single signal is not a pattern. Broad conditions require many contributors — no one person announces a season.",
+    themes:["nature","wisdom"], original:null,
+    img:"https://images.unsplash.com/photo-1606041011872-596597976b25?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:16, score:61, title:"Fall seven times, stand up eight", origin:"Japanese proverb",
+    desc:"Resilience is the surplus of recoveries over failures. To persist through all falls, one must be rooted in something shared.",
+    themes:["perseverance","courage"], original:"七転び八起き",
+    img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:17, score:65, title:"A rising tide lifts all boats", origin:"American folk wisdom",
+    desc:"Collective prosperity raises every member of a community. The wellbeing of the group is the most reliable engine of individual gain.",
+    themes:["community","strength"], original:null,
+    img:"https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:18, score:68, title:"Many hands make light work", origin:"English (John Heywood, 1546)",
+    desc:"Shared labor multiplies ease. The burden that crushes one is nothing to many — collective action transforms the difficult.",
+    themes:["community","perseverance"], original:null,
+    img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:19, score:72, title:"Birds of a feather flock together", origin:"English (William Turner, 1545)",
+    desc:"Community forms through affinity — belonging emerges when individuals recognize themselves in one another.",
+    themes:["community","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:20, score:74, title:"When spider webs unite, they can tie up a lion", origin:"Ethiopian proverb",
+    desc:"Even the most fragile thread becomes formidable through union. No individual weakness is permanent when woven into a collective.",
+    themes:["strength","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1530700131180-d43d9b8cc41f?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:21, score:76, title:"A person is people", origin:"Swahili proverb",
+    desc:"Individual identity is not separable from community. You become fully human through the recognition others extend to you.",
+    themes:["community"], original:"Mtu ni watu",
+    img:"https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:22, score:79, title:"Little strokes fell great oaks", origin:"English (Benjamin Franklin, 1736)",
+    desc:"Patient, repeated effort accomplishes what force alone cannot. Small consistent acts accumulate into transformation.",
+    themes:["perseverance","nature"], original:null,
+    img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:23, score:81, title:"Drop by drop makes an ocean", origin:"Hindi proverb",
+    desc:"Each small contribution is insufficient alone, but together many drops become vast. The proverb honors the drop because of what it joins.",
+    themes:["nature","perseverance","community"], original:"बूंद-बूंद से सागर बनता है",
+    img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:24, score:84, title:"The nail that sticks up gets hammered down", origin:"Japanese proverb",
+    desc:"Standing apart from the group invites pressure to conform. Harmony is actively maintained through collective uniformity.",
+    themes:["community","wisdom"], original:"出る杭は打たれる",
+    img:"https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:25, score:86, title:"Together we stand, divided we fall", origin:"American / Aesop's Fables",
+    desc:"Unity is not merely beneficial — it is existential. What remains whole in union disintegrates in separation.",
+    themes:["strength","courage"], original:null,
+    img:"https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:26, score:88, title:"It takes a village to raise a child", origin:"African proverb (Igbo / Yoruba)",
+    desc:"No individual is sufficient to form a whole human being. Community is the very medium of human becoming.",
+    themes:["community"], original:null,
+    img:"https://images.unsplash.com/photo-1544785349-c4a5301826fd?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:27, score:90, title:"I am because we are (Ubuntu)", origin:"Nguni Bantu philosophy",
+    desc:"Selfhood is constituted by community, not prior to it. To be human is to be in relation — there is no 'I' without 'we.'",
+    themes:["community","wisdom"], original:"Umuntu ngumuntu ngabantu",
+    img:"https://images.unsplash.com/photo-1504389557341-b1d95a6b6280?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:28, score:92, title:"One arrow breaks; three arrows do not", origin:"Japanese (Mōri Motonari, 16th c.)",
+    desc:"Alone, each arrow snaps. Bound together, none can be broken. Unity is the only invincible armor.",
+    themes:["strength","community"], original:"一本の矢は折れやすく、三本の矢は折れにくい",
+    img:"https://images.unsplash.com/photo-1512418490979-92798cec1e20?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:29, score:94, title:"Many a little makes a mickle", origin:"Scottish proverb",
+    desc:"A mickle is a large amount; a little barely registers. The proverb insists that aggregate effect dwarfs individual significance.",
+    themes:["perseverance","community"], original:null,
+    img:"https://images.unsplash.com/photo-1564419320461-6870880221ad?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:30, score:96, title:"Sticks in a bundle cannot be broken", origin:"Bantu / Aesop's Fables",
+    desc:"Individually, sticks splinter easily. Bound together, they defy force. Collective structure transcends the sum of its parts.",
+    themes:["strength","community"], original:null,
+    img:"https://images.unsplash.com/photo-1500964757637-c85e8a162699?w=400&h=220&fit=crop&q=80", userAdded:false },
+  { id:31, score:98, title:"The river is made of countless drops", origin:"Swahili / Persian tradition",
+    desc:"No river has a single source. Every great flowing thing is an accumulation of the invisible small.",
+    themes:["nature","community","perseverance"], original:null,
+    img:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=220&fit=crop&q=80", userAdded:false }
+];
+
+// ── 3 landing cards (one from each zone) ───────────────────────
+const LANDING_IDS = [4, 13, 27]; // fortune favors the bold · one hand washes · ubuntu
+
+// ── USER-ADDED pool ─────────────────────────────────────────────
+const userAdded = [];
+let nextId = 100;
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let activeTheme = ''; // '' = landing state
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function allProverbs() { return [...LIBRARY, ...userAdded]; }
+
+function getVisible() {
+  if (!activeTheme) {
+    return allProverbs().filter(p => LANDING_IDS.includes(p.id) || p.userAdded);
+  }
+  return allProverbs()
+    .filter(p => (p.themes || []).includes(activeTheme))
+    .sort((a, b) => a.score - b.score);
+}
+
+function cardW() {
+  const cw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-w'));
+  return isNaN(cw) ? 176 : cw;
+}
+
+// Non-overlapping X placement
+function nudge(xs, CW, canvasW, margin = 8) {
+  if (!xs.length) return [];
+  const PAD = 24;
+  const maxX = canvasW - PAD - CW;
+  const res = xs.map(x => Math.max(PAD, Math.min(x, maxX)));
+  for (let pass = 0; pass < 40; pass++) {
+    for (let i = 1; i < res.length; i++) {
+      if (res[i] - res[i-1] < CW + margin)
+        res[i] = res[i-1] + CW + margin;
+    }
+    if (res[res.length-1] > maxX) {
+      res[res.length-1] = maxX;
+      for (let i = res.length - 2; i >= 0; i--)
+        if (res[i+1] - res[i] < CW + margin)
+          res[i] = res[i+1] - CW - margin;
+    }
+    res[0] = Math.max(PAD, res[0]);
+  }
+  return res;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════
+let renderedIds = new Set();
+
+function render() {
+  const canvas   = document.getElementById('canvas');
+  const specLine = document.getElementById('specLine');
+  const dotsEl   = document.getElementById('dotsLayer');
+  const cardsEl  = document.getElementById('cardsLayer');
+  const connSvg  = document.getElementById('connSvg');
+  const hint     = document.getElementById('introHint');
+  const countEl  = document.getElementById('cardCount');
+
+  const CW = cardW();
+  const W  = canvas.clientWidth;
+  const H  = canvas.clientHeight;
+  const PAD = 24;
+  const lineW = W - 2 * PAD;
+
+  const lineY = Math.round(H * 0.46);
+  specLine.style.top = lineY + 'px';
+  specLine.querySelectorAll('.tick').forEach(t => t.remove());
+  for (let i = 10; i < 100; i += 10) {
+    const t = document.createElement('div');
+    t.className = 'tick';
+    t.style.left = (i / 100 * lineW) + 'px';
+    specLine.appendChild(t);
+  }
+
+  const visible = getVisible().sort((a, b) => a.score - b.score);
+  const newIds  = new Set(visible.map(p => p.id));
+
+  // Always staggered — no dots, no connectors, faint spec line
+  specLine.classList.add('staggered');
+  dotsEl.innerHTML = '';
+  connSvg.innerHTML = '';
+
+  // ── Remove cards no longer visible ────────────────────────
+  cardsEl.querySelectorAll('.card').forEach(el => {
+    const id = +el.dataset.id;
+    if (!newIds.has(id)) {
+      el.classList.add('out');
+      el.classList.remove('in');
+      setTimeout(() => el.remove(), 420);
+    }
+  });
+
+  // ── Build any new cards (off-screen, invisible) first ─────
+  const WAVE = [0.08, 0.54, 0.20, 0.70, 0.36, 0.62, 0.14, 0.46,
+                0.76, 0.28, 0.58, 0.06, 0.66, 0.32, 0.80, 0.42];
+  const vPad = 16;
+
+  const rawXs    = visible.map(p => PAD + (p.score / 100) * (lineW - CW));
+  const nudgedXs = nudge(rawXs, CW, W, 6);
+
+  visible.forEach((p, i) => {
+    if (cardsEl.querySelector(`.card[data-id="${p.id}"]`)) return; // already exists
+
+    const pills = (p.themes || []).map(t => `<span class="theme-pill">${t}</span>`).join('');
+    const card  = document.createElement('div');
+    card.className  = 'card' + (p.userAdded ? ' user-card' : '');
+    card.dataset.id = p.id;
+    // Temporarily off-screen to measure
+    card.style.left       = '-9999px';
+    card.style.top        = '-9999px';
+    card.style.visibility = 'hidden';
+
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${p.img || ''}" alt="${p.title}" loading="lazy" onerror="this.style.opacity='0'">
+      </div>
+      <div class="card-body">
+        ${p.original ? `<div class="card-original">${p.original}</div>` : ''}
+        <div class="card-title">${p.title}</div>
+        <div class="card-description">${p.desc}</div>
+      </div>
+      <div class="card-foot">
+        <div class="card-origin">${p.origin}</div>
+        <div class="card-themes">${pills}${p.userAdded ? '<span class="user-badge">yours</span>' : ''}</div>
+      </div>`;
+
+    cardsEl.appendChild(card);
+  });
+
+  // ── Second pass: measure real heights, clamp, animate in ──
+  visible.forEach((p, i) => {
+    const cx   = nudgedXs[i];
+    const card = cardsEl.querySelector(`.card[data-id="${p.id}"]`);
+    if (!card) return;
+
+    const isNew    = card.style.visibility === 'hidden';
+    const cardH    = card.offsetHeight || 260;
+    const availH   = H - vPad * 2 - cardH;
+    const rawCy    = vPad + WAVE[i % WAVE.length] * Math.max(0, availH);
+    const cy       = Math.min(rawCy, H - vPad - cardH); // clamp bottom edge
+
+    if (isNew) {
+      card.style.visibility = '';
+      card.style.left = cx + 'px';
+      card.style.top  = cy + 'px';
+      setTimeout(() => card.classList.add('in'), i * 55);
+    } else {
+      card.style.transition = 'left 0.48s cubic-bezier(.4,0,.2,1), top 0.48s cubic-bezier(.4,0,.2,1), opacity 0.42s, transform 0.42s, box-shadow 0.2s';
+      card.style.left = cx + 'px';
+      card.style.top  = cy + 'px';
+    }
+  });
+
+  // ── Hint ──────────────────────────────────────────────────
+  hint.classList.toggle('hidden', !!activeTheme);
+
+  // ── Count ─────────────────────────────────────────────────
+  if (activeTheme) {
+    countEl.textContent = `${visible.length} proverb${visible.length !== 1 ? 's' : ''} on this theme`;
+  } else {
+    countEl.textContent = `${allProverbs().length} proverbs in the collection`;
+  }
+
+  renderedIds = newIds;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  THEME SELECT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('themeSelect').addEventListener('change', e => {
+  activeTheme = e.target.value;
+  render();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+const overlay   = document.getElementById('modalOverlay');
+const scoreSlider = document.getElementById('m-score');
+const scoreLabel  = document.getElementById('scoreLabel');
+
+function openModal() {
+  overlay.classList.add('open');
+  document.getElementById('m-title').focus();
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+}
+
+document.getElementById('openModalBtn').addEventListener('click', openModal);
+document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+overlay.addEventListener('click', e => {
+  if (e.target === overlay) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+});
+
+// Slider label update
+scoreSlider.addEventListener('input', () => {
+  const v = +scoreSlider.value;
+  let label;
+  if (v <= 15)      label = `Strongly individualist (${v})`;
+  else if (v <= 35) label = `Individualist (${v})`;
+  else if (v <= 50) label = `Leaning individual (${v})`;
+  else if (v === 50) label = `Middle (${v})`;
+  else if (v <= 65) label = `Leaning collective (${v})`;
+  else if (v <= 85) label = `Collectivist (${v})`;
+  else              label = `Strongly collectivist (${v})`;
+  scoreLabel.textContent = label;
+});
+
+// Theme checkbox toggle
+document.querySelectorAll('.theme-check-label').forEach(lbl => {
+  lbl.addEventListener('click', () => {
+    const cb = lbl.querySelector('input');
+    cb.checked = !cb.checked;
+    lbl.classList.toggle('checked', cb.checked);
+    document.getElementById('f-themes').classList.remove('error');
+  });
+});
+
+// Form validation + submit
+document.getElementById('submitBtn').addEventListener('click', () => {
+  let valid = true;
+
+  function check(fieldId, inputId, test) {
+    const val = document.getElementById(inputId).value.trim();
+    const ok  = test(val);
+    document.getElementById(fieldId).classList.toggle('error', !ok);
+    if (!ok) valid = false;
+    return val;
+  }
+
+  const title  = check('f-title',  'm-title',  v => v.length > 0);
+  const origin = check('f-origin', 'm-origin', v => v.length > 0);
+  const desc   = check('f-desc',   'm-desc',   v => v.length > 0);
+  const orig   = document.getElementById('m-original').value.trim() || null;
+  const score  = +scoreSlider.value;
+
+  const selectedThemes = [...document.querySelectorAll('.theme-check-label input:checked')]
+    .map(cb => cb.value);
+
+  if (!selectedThemes.length) {
+    document.getElementById('f-themes').classList.add('error');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  // Build new proverb
+  const newP = {
+    id: nextId++,
+    score,
+    title,
+    origin,
+    desc,
+    original: orig,
+    themes: selectedThemes,
+    img: getThemeImage(selectedThemes[0]),
+    userAdded: true
+  };
+
+  userAdded.push(newP);
+
+  // If the theme matches, switch to it
+  if (!activeTheme || selectedThemes.includes(activeTheme)) {
+    if (!activeTheme && selectedThemes.length === 1) {
+      activeTheme = selectedThemes[0];
+      document.getElementById('themeSelect').value = activeTheme;
+    }
+  }
+
+  render();
+  closeModal();
+  resetModal();
+});
+
+function getThemeImage(theme) {
+  const map = {
+    strength:     'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=220&fit=crop&q=80',
+    wisdom:       'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=400&h=220&fit=crop&q=80',
+    community:    'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=400&h=220&fit=crop&q=80',
+    nature:       'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=220&fit=crop&q=80',
+    perseverance: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=220&fit=crop&q=80',
+    courage:      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=220&fit=crop&q=80'
+  };
+  return map[theme] || map.nature;
+}
+
+function resetModal() {
+  document.getElementById('m-title').value   = '';
+  document.getElementById('m-original').value = '';
+  document.getElementById('m-origin').value  = '';
+  document.getElementById('m-desc').value    = '';
+  scoreSlider.value = 50;
+  scoreLabel.textContent = 'Middle (50)';
+  document.querySelectorAll('.theme-check-label').forEach(lbl => {
+    lbl.querySelector('input').checked = false;
+    lbl.classList.remove('checked');
+  });
+  ['f-title','f-origin','f-desc','f-themes'].forEach(id =>
+    document.getElementById(id).classList.remove('error')
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════════════
+let rTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(rTimer);
+  rTimer = setTimeout(() => render(), 100);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+requestAnimationFrame(() => render());
+</script>
+</body>
+</html>
