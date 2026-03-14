@@ -12,6 +12,7 @@
       --red:      #C81818;
       --red-pale: #FEF2F2;
       --red-mid:  #F0CCCC;
+      --beige:    #FAF8F5;
       --white:    #FFFFFF;
       --muted:    #6C6C6C;
       --card-w:   clamp(240px, 23vw, 320px);
@@ -24,13 +25,14 @@
       --teal-mid:  #BDE5E3;
     }
 
-    html, body { height: 100%; overflow: hidden; }
+    html, body { height: 100%; }
 
     body {
       font-family: 'Hanken Grotesk', sans-serif;
-      background: var(--white);
+      background: var(--beige);
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     /* ══ HEADER ════════════════════════════════════════════ */
@@ -39,7 +41,7 @@
       justify-content: space-between;
       align-items: flex-start;
       padding: 22px 38px 18px;
-      background: var(--white);
+      background: var(--beige);
       border-bottom: 1.5px solid var(--red);
       flex-shrink: 0;
       gap: 24px;
@@ -48,27 +50,41 @@
     .header-left h1 {
       font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 800;
-      font-style: italic;
-      font-size: clamp(1.55rem, 2.4vw, 2.35rem);
+      font-style: normal;
+      font-size: clamp(2rem, 3.2vw, 3rem);
       color: var(--red);
       line-height: 1;
       margin-bottom: 6px;
     }
 
     .header-left p {
-      font-size: 0.79rem;
+      font-size: 0.93rem;
       color: var(--red);
       max-width: 380px;
       line-height: 1.66;
       opacity: 0.68;
     }
 
+    /* Controls sit flush with the description line, not the h1 */
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    /* Invisible spacer that matches h1 height so controls align to description */
+    .header-right-spacer {
+      display: block;
+    }
+
     .header-controls {
       display: flex;
       gap: 10px;
       align-items: center;
-      padding-top: 4px;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     /* Theme select */
@@ -148,6 +164,72 @@
       flex: 1;
       position: relative;
       overflow: hidden;
+      background: var(--beige);
+    }
+
+    /* On mobile, canvas scrolls horizontally so cards are reachable */
+    @media (max-width: 640px) {
+      html, body { overflow: unset; height: auto; }
+
+      body { overflow-x: hidden; }
+
+      header {
+        flex-direction: column;
+        padding: 18px 20px 14px;
+        gap: 14px;
+      }
+
+      .header-right { width: 100%; align-items: flex-start; }
+      .header-right-spacer { display: none; }
+
+      .header-controls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      select, .add-btn { width: 100%; justify-content: center; }
+
+      .stage { flex-direction: column; min-height: 0; }
+
+      .axis-label {
+        writing-mode: horizontal-tb;
+        width: 100%;
+        height: 36px;
+        font-size: 0.65rem;
+      }
+      .axis-label.left  {
+        transform: none;
+        border-right: none;
+        border-left: none;
+        border-bottom: 1.5px solid var(--red);
+        justify-content: flex-start;
+        padding-left: 16px;
+      }
+      .axis-label.right {
+        border-left: none;
+        border-top: 1.5px solid var(--red);
+        justify-content: flex-end;
+        padding-right: 16px;
+      }
+
+      #canvas {
+        width: 100%;
+        min-height: 520px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Cards on mobile: narrower, tighter */
+      :root { --card-w: clamp(200px, 72vw, 260px); }
+
+      .footer-bar { padding: 0 20px; }
+    }
+
+    @media (min-width: 641px) {
+      .stage { height: 100%; }
+      #canvas { overflow: hidden; }
     }
 
     /* Spectrum line */
@@ -286,7 +368,7 @@
 
     .card-body {
       flex: 1;
-      padding: 14px 16px 10px;
+      padding: 20px 20px 12px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -326,7 +408,7 @@
     /* Card footer — origin + themes sit at the bottom */
     .card-foot {
       flex-shrink: 0;
-      padding: 8px 16px 12px;
+      padding: 10px 20px 16px;
       border-top: 1px solid rgba(200,24,24,0.09);
     }
     .card.user-card .card-foot { border-top-color: rgba(18,113,106,0.1); }
@@ -402,7 +484,7 @@
     #modalOverlay.open { display: flex; }
 
     #modal {
-      background: var(--white);
+      background: var(--beige);
       border: 1.5px solid var(--red);
       width: min(520px, 92vw);
       max-height: 90vh;
@@ -618,7 +700,7 @@
       padding: 0 38px;
       height: 44px;
       border-top: 1px solid var(--red-mid);
-      background: var(--white);
+      background: var(--beige);
     }
     .footer-note {
       font-size: 0.66rem;
@@ -645,25 +727,28 @@
     <h1>it's a spectrum</h1>
     <p>Proverbs and idioms from cultures across the world, plotted between individual will and collective wisdom. Explore a theme — or add your own saying to the spectrum.</p>
   </div>
-  <div class="header-controls">
-    <div class="select-wrap">
-      <select id="themeSelect">
-        <option value="">Explore a theme</option>
-        <option value="strength">Strength &amp; Unity</option>
-        <option value="wisdom">Wisdom &amp; Reflection</option>
-        <option value="community">Community &amp; Belonging</option>
-        <option value="nature">Nature &amp; Scale</option>
-        <option value="perseverance">Perseverance</option>
-        <option value="courage">Courage &amp; Independence</option>
-      </select>
+  <div class="header-right">
+    <div class="header-right-spacer" id="h1Spacer"></div>
+    <div class="header-controls">
+      <div class="select-wrap">
+        <select id="themeSelect">
+          <option value="">Explore a theme</option>
+          <option value="strength">Strength &amp; Unity</option>
+          <option value="wisdom">Wisdom &amp; Reflection</option>
+          <option value="community">Community &amp; Belonging</option>
+          <option value="nature">Nature &amp; Scale</option>
+          <option value="perseverance">Perseverance</option>
+          <option value="courage">Courage &amp; Independence</option>
+        </select>
+      </div>
+      <button class="add-btn" id="openModalBtn">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <line x1="6" y1="1" x2="6" y2="11" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="6" x2="11" y2="6" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Add a saying
+      </button>
     </div>
-    <button class="add-btn" id="openModalBtn">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <line x1="6" y1="1" x2="6" y2="11" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
-        <line x1="1" y1="6" x2="11" y2="6" stroke="#C81818" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      Add a proverb
-    </button>
   </div>
 </header>
 
@@ -1012,9 +1097,13 @@ function render() {
   // ── Build any new cards (off-screen, invisible) first ─────
   const WAVE = [0.08, 0.54, 0.20, 0.70, 0.36, 0.62, 0.14, 0.46,
                 0.76, 0.28, 0.58, 0.06, 0.66, 0.32, 0.80, 0.42];
-  const vPad = 16;
+  const vPad = 20;
 
-  const rawXs    = visible.map(p => PAD + (p.score / 100) * (lineW - CW));
+  // X range: cards must be fully inside canvas (left PAD, right PAD)
+  const rawXs    = visible.map(p => {
+    const ideal = PAD + (p.score / 100) * (lineW - CW);
+    return Math.max(PAD, Math.min(ideal, W - PAD - CW));
+  });
   const nudgedXs = nudge(rawXs, CW, W, 6);
 
   visible.forEach((p, i) => {
@@ -1045,15 +1134,15 @@ function render() {
 
   // ── Second pass: measure real heights, clamp, animate in ──
   visible.forEach((p, i) => {
-    const cx   = nudgedXs[i];
+    const cx   = Math.max(PAD, Math.min(nudgedXs[i], W - PAD - CW)); // double-clamp X
     const card = cardsEl.querySelector(`.card[data-id="${p.id}"]`);
     if (!card) return;
 
-    const isNew    = card.style.visibility === 'hidden';
-    const cardH    = card.offsetHeight || 260;
-    const availH   = H - vPad * 2 - cardH;
-    const rawCy    = vPad + WAVE[i % WAVE.length] * Math.max(0, availH);
-    const cy       = Math.min(rawCy, H - vPad - cardH); // clamp bottom edge
+    const isNew  = card.style.visibility === 'hidden';
+    const cardH  = card.offsetHeight || 260;
+    const availH = Math.max(0, H - vPad * 2 - cardH);
+    const rawCy  = vPad + WAVE[i % WAVE.length] * availH;
+    const cy     = Math.max(vPad, Math.min(rawCy, H - vPad - cardH)); // clamp top+bottom
 
     if (isNew) {
       card.style.visibility = '';
@@ -1225,18 +1314,31 @@ function resetModal() {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  SPACER — align controls to description text, not h1
+// ═══════════════════════════════════════════════════════════
+function syncSpacer() {
+  const h1     = document.querySelector('.header-left h1');
+  const spacer = document.getElementById('h1Spacer');
+  if (h1 && spacer && window.innerWidth > 640) {
+    spacer.style.height = (h1.offsetHeight + 6) + 'px'; // +6 = h1 margin-bottom
+  } else if (spacer) {
+    spacer.style.height = '0px';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 //  RESIZE
 // ═══════════════════════════════════════════════════════════
 let rTimer;
 window.addEventListener('resize', () => {
   clearTimeout(rTimer);
-  rTimer = setTimeout(() => render(), 100);
+  rTimer = setTimeout(() => { syncSpacer(); render(); }, 100);
 });
 
 // ═══════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════
-requestAnimationFrame(() => render());
+requestAnimationFrame(() => { syncSpacer(); render(); });
 </script>
 </body>
 </html>
