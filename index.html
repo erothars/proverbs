@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>it's a spectrum</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Hanken+Grotesk:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -14,7 +14,7 @@
       --red-mid:  #F0CCCC;
       --white:    #FFFFFF;
       --muted:    #6C6C6C;
-      --card-w:   clamp(156px, 14.5vw, 204px);
+      --card-w:   clamp(240px, 23vw, 320px);
       --card-img: clamp(84px, 11vh, 114px);
       --ease-out: cubic-bezier(.22,.68,0,1.1);
 
@@ -46,7 +46,7 @@
     }
 
     .header-left h1 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-weight: 800;
       font-style: italic;
       font-size: clamp(1.55rem, 2.4vw, 2.35rem);
@@ -140,7 +140,7 @@
       flex-shrink: 0;
       user-select: none;
     }
-    .axis-label.left  { transform: rotate(180deg); border-right: 1.5px solid var(--red); }
+    .axis-label.left  { transform: rotate(180deg); border-right: 1.5px solid var(--red); border-left: 1.5px solid var(--red); }
     .axis-label.right { border-left: 1.5px solid var(--red); }
 
     /* ══ CANVAS ════════════════════════════════════════════ */
@@ -282,34 +282,11 @@
       background: var(--teal-mid);
     }
 
-    .card-img-wrap {
-      width: 100%; height: var(--card-img);
-      flex-shrink: 0;
-      overflow: hidden;
-      position: relative;
-      background: var(--red-mid);
-    }
-    .card.user-card .card-img-wrap { background: var(--teal-mid); }
 
-    .card-img-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover; display: block;
-      filter: grayscale(100%) contrast(1.06) brightness(0.88);
-      transition: transform 0.32s ease;
-    }
-    .card:hover .card-img-wrap img { transform: scale(1.06); }
-    .card-img-wrap::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: rgba(165,10,10,0.44);
-      mix-blend-mode: multiply;
-      pointer-events: none;
-    }
-    .card.user-card .card-img-wrap::after { background: rgba(10,90,84,0.44); }
 
     .card-body {
       flex: 1;
-      padding: 10px 12px 8px;
+      padding: 14px 16px 10px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -319,9 +296,9 @@
     .card-original {
       font-family: 'Cormorant Garamond', serif;
       font-style: italic;
-      font-size: 0.79rem;
+      font-size: 0.95rem;
       color: var(--red);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
       line-height: 1.35;
       opacity: 0.78;
       white-space: nowrap;
@@ -333,34 +310,34 @@
     .card-title {
       font-family: 'Syne', sans-serif;
       font-weight: 700;
-      font-size: clamp(0.74rem, 1.05vw, 0.87rem);
+      font-size: clamp(0.92rem, 1.25vw, 1.05rem);
       color: var(--red);
-      line-height: 1.28;
-      margin-bottom: 5px;
+      line-height: 1.3;
+      margin-bottom: 8px;
     }
     .card.user-card .card-title { color: var(--teal); }
 
     .card-description {
-      font-size: clamp(0.61rem, 0.78vw, 0.68rem);
+      font-size: clamp(0.76rem, 0.95vw, 0.84rem);
       color: var(--muted);
-      line-height: 1.56;
+      line-height: 1.6;
     }
 
     /* Card footer — origin + themes sit at the bottom */
     .card-foot {
       flex-shrink: 0;
-      padding: 6px 12px 9px;
+      padding: 8px 16px 12px;
       border-top: 1px solid rgba(200,24,24,0.09);
     }
     .card.user-card .card-foot { border-top-color: rgba(18,113,106,0.1); }
 
     .card-origin {
-      font-size: 0.58rem;
+      font-size: 0.66rem;
       font-weight: 600;
       letter-spacing: 0.09em;
       text-transform: uppercase;
       color: rgba(200,24,24,0.48);
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -369,17 +346,17 @@
 
     .card-themes {
       display: flex;
-      gap: 3px;
+      gap: 4px;
       flex-wrap: wrap;
     }
     .theme-pill {
-      font-size: 0.53rem;
+      font-size: 0.6rem;
       font-weight: 600;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--red);
       background: var(--red-mid);
-      padding: 1px 5px 2px;
+      padding: 2px 7px 3px;
       border-radius: 2px;
     }
     /* user-added badge */
@@ -666,7 +643,7 @@
 <header>
   <div class="header-left">
     <h1>it's a spectrum</h1>
-    <p>Proverbs and idioms from cultures across the world, plotted between individual will and collective wisdom. Select a theme to explore.</p>
+    <p>Proverbs and idioms from cultures across the world, plotted between individual will and collective wisdom. Explore a theme — or add your own saying to the spectrum.</p>
   </div>
   <div class="header-controls">
     <div class="select-wrap">
@@ -698,7 +675,7 @@
     <div id="specLine"></div>
     <div id="dotsLayer"></div>
     <div id="cardsLayer"></div>
-    <p id="introHint">← select a theme above to reveal more proverbs →</p>
+    <p id="introHint">← explore a theme or add your own saying →</p>
   </div>
   <div class="axis-label right">COLLECTIVISM</div>
 </div>
@@ -714,8 +691,8 @@
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
       <div>
-        <h2 id="modalTitle">add your proverb</h2>
-        <p>Share a saying from your culture or one that has stayed with you. We'll place it on the spectrum.</p>
+        <h2 id="modalTitle">add your saying</h2>
+        <p>Have a proverb or idiom from your culture, or one that has stayed with you? Place it on the spectrum and add it to the collection.</p>
       </div>
       <button class="close-btn" id="closeModalBtn" aria-label="Close">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -1053,9 +1030,6 @@ function render() {
     card.style.visibility = 'hidden';
 
     card.innerHTML = `
-      <div class="card-img-wrap">
-        <img src="${p.img || ''}" alt="${p.title}" loading="lazy" onerror="this.style.opacity='0'">
-      </div>
       <div class="card-body">
         ${p.original ? `<div class="card-original">${p.original}</div>` : ''}
         <div class="card-title">${p.title}</div>
